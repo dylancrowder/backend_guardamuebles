@@ -25,7 +25,7 @@ const customerSchema = new mongoose.Schema(
       required: [true, 'La fecha de vencimiento es requerida']
     },
     // Monto
-    monthlyAmount: {
+    amount: {
       type: Number,
       required: [true, 'El monto mensual es requerido'],
       min: [0.01, 'El monto debe ser mayor a 0']
