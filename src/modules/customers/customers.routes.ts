@@ -5,6 +5,7 @@ const router = Router();
 
 
 router.post('/addNewClient', customersController.create);
+router.post('/getAllClients', customersController.create);
 
 
 export default router;

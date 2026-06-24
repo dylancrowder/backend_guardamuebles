@@ -10,11 +10,7 @@ interface CustomerData {
   observations?: string;
 }
 
-interface ClientFilters {
-  search?: string;
-  page?: number;
-  limit?: number;
-}
+
 
 const calculateClientStatus = (
   dueDate: Date
@@ -35,6 +31,25 @@ const calculateClientStatus = (
 };
 
 export const customersService = {
+
+getAll: async (filters: Record<string, any>) => {
+  try {
+    const customers = await CustomerModel.find(filters).lean();
+
+    const customersWithStatus = customers.map((customer) => ({
+      ...customer,
+      status: calculateClientStatus(customer.dueDate),
+    }));
+
+    return customersWithStatus;
+  } catch (error: any) {
+    console.error('Error en customersService.getAll:', error.message);
+    throw createBadRequestError('Error al obtener clientes', {
+      originalError: error.message,
+    });
+  }
+},
+
 
 create: async (data: CustomerData) => {
   try {
