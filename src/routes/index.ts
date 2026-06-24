@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import customersRoutes from '../modules/customers/customers.routes';
-
+import paymentsRoutes from '../modules/payments/payments.routes';
 
 const router = Router();
 
@@ -19,6 +19,6 @@ router.get('/health', (_req, res) => {
 });
 
 router.use('/api/clients', customersRoutes);
-
+router.use('/api/payments', paymentsRoutes);
 
 export default router;

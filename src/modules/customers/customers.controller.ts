@@ -25,7 +25,7 @@ export const customersController = {
       }
 
       const result = await customersService.getAll(filters);
-      return res.json(result.clients);
+      return res.json(result);
     } catch (error: any) {
       handleError(error, req, res, 400);
     }
@@ -33,13 +33,14 @@ export const customersController = {
 
   getById: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const clientId = Array.isArray(req.params.clientId) ? req.params.clientId[0] : req.params.clientId;
+      const clientId = req.params.id || req.params.clientId;
+      const id = Array.isArray(clientId) ? clientId[0] : clientId;
 
-      if (!clientId) {
+      if (!id) {
         throw createValidationError('clientId', 'ID del cliente requerido');
       }
 
-      const client = await customersService.getById(clientId);
+      const client = await customersService.getById(id);
       return res.json(client);
     } catch (error: any) {
       handleError(error, req, res, 404);

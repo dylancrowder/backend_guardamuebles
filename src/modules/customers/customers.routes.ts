@@ -3,9 +3,11 @@ import { customersController } from './customers.controller';
 
 const router = Router();
 
-
-router.post('/addNewClient', customersController.create);
-router.post('/getAllClients', customersController.create);
-
+router.get('/', customersController.getAll);
+router.post('/', customersController.create);
+router.get('/getClient/:id', customersController.getById);
+router.get('/:clientId', customersController.getById);
+router.put('/:clientId', customersController.update);
+router.delete('/:clientId', customersController.delete);
 
 export default router;
