@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { paymentsService } from './payments.service';
 import { handleError, createValidationError } from '../../utils/response';
+import { customersService } from '../customers/customers.service';
 
 export const paymentsController = {
   getPaymentsByClient: async (req: Request, res: Response, next: NextFunction) => {
@@ -50,5 +51,43 @@ export const paymentsController = {
     } catch (error: any) {
       handleError(error, req, res, 400);
     }
+  },
+
+
+
+
+
+  detailPayments: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const clientId = Array.isArray(req.params.clientId)
+        ? req.params.clientId[0]
+        : req.params.clientId;
+
+      if (!clientId) {
+        throw createValidationError(
+          "clientId",
+          "ID del cliente requerido"
+        );
+      }
+
+      const result = await paymentsService.detailPayments(clientId);
+
+      return res.status(200).json(result);
+    } catch (error) {
+      handleError(error, req, res, 400);
+    }
+
   }
+
+
+
+
+
+
+
+
 };

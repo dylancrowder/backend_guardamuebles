@@ -6,7 +6,6 @@ const router = Router();
 router.get('/', customersController.getAll);
 router.post('/', customersController.create);
 router.get('/getClient/:id', customersController.getById);
-router.get('/:clientId', customersController.getById);
 router.put('/:clientId', customersController.update);
 router.delete('/:clientId', customersController.delete);
 

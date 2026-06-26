@@ -20,10 +20,7 @@ const customerSchema = new mongoose.Schema(
       type: Date,
       required: [true, 'La fecha de entrada es requerida']
     },
-    dueDate: {
-      type: Date,
-      required: [true, 'La fecha de vencimiento es requerida']
-    },
+  
     // Monto
     amount: {
       type: Number,

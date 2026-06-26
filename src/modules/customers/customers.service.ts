@@ -5,77 +5,21 @@ interface CustomerData {
   name?: string;
   whatsapp?: string;
   entryDate?: Date;
-  dueDate?: Date;
   amount?: number;
   observations?: string;
 }
 
-interface ClientFilters {
-  search?: string;
-  page?: number;
-  limit?: number;
-}
 
-const calculateClientStatus = (
-  dueDate: Date
-): 'paid' | 'pending' | 'overdue' => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
-  const dueDateNormalized = new Date(dueDate);
-  dueDateNormalized.setHours(0, 0, 0, 0);
-
-  if (dueDateNormalized < today) {
-    return 'overdue';
-  } else if (dueDateNormalized.getTime() === today.getTime()) {
-    return 'pending';
-  }
-
-  return 'pending';
-};
 
 export const customersService = {
-  getAll: async (filters: ClientFilters = {}) => {
+  getAll: async (query: Record<string, any>) => {
     try {
-      const { search, page = 1, limit = 10 } = filters;
-
-      let query: any = {};
-
-      if (search) {
-        query.$or = [
-          { name: { $regex: search, $options: 'i' } },
-          { whatsapp: { $regex: search, $options: 'i' } }
-        ];
-      }
-
-      const skip = (page - 1) * limit;
 
       let clients = await CustomerModel.find(query)
-        .skip(skip)
-        .limit(limit)
-        .lean();
+      console.log('Clientes encontrados:', clients);
 
-      const totalResults = await CustomerModel.countDocuments(query);
-      const totalPages = Math.ceil(totalResults / limit);
-
-      clients = clients.map((client: any) => {
-        const clientStatus = calculateClientStatus(client.dueDate);
-
-        return {
-          ...client,
-          estado: clientStatus
-        };
-      });
-
-      return {
-        clients,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalResults,
-          limit
-        }
-      };
+      return clients
     } catch (error: any) {
       console.error('Error en customersService.getAll:', error);
       throw error;
@@ -93,12 +37,8 @@ export const customersService = {
         throw createNotFoundError('Cliente', id);
       }
 
-      const clientStatus = calculateClientStatus(client.dueDate);
 
-      return {
-        ...client.toObject(),
-        estado: clientStatus
-      };
+      return client;
     } catch (error: any) {
       console.error('Error en customersService.getById:', { id, error: error.message });
       throw error;
@@ -108,14 +48,11 @@ export const customersService = {
   create: async (data: any) => {
     try {
       const entryDate = new Date(data.entryDate);
-      const generatedDueDate = new Date(entryDate);
-      generatedDueDate.setDate(generatedDueDate.getDate() + 30);
-
+   
       const mappedData: CustomerData = {
         name: data.name || data.nombre,
         whatsapp: data.whatsapp || data.telefono,
         entryDate: entryDate,
-        dueDate: data.dueDate || generatedDueDate,
         amount: data.amount || data.limiteCredito,
         observations: data.observations || ''
       };
@@ -131,13 +68,7 @@ export const customersService = {
         throw createValidationError('amount', 'El monto debe ser mayor a 0', mappedData.amount);
       }
 
-      if (mappedData.entryDate && mappedData.dueDate) {
-        const entry = new Date(mappedData.entryDate);
-        const due = new Date(mappedData.dueDate);
-        if (due <= entry) {
-          throw createValidationError('dueDate', 'La fecha de vencimiento debe ser posterior a la fecha de entrada');
-        }
-      }
+    
 
       const customer = await CustomerModel.create(mappedData);
       console.log('Cliente creado exitosamente:', { customerId: customer._id, name: customer.name });
