@@ -10,7 +10,24 @@ const app = express();
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-app.use(cors());
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    const allowedOrigins = [
+      'https://guardamuebles-front.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:3001'
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(helmet());
 app.use(morgan(isDevelopment ? 'dev' : 'combined'));
 app.use(express.json());
