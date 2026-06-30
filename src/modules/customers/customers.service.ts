@@ -47,8 +47,10 @@ export const customersService = {
 
   create: async (data: any) => {
     try {
-      const entryDate = new Date(data.entryDate);
-   
+      const [year, month, day] = data.entryDate.split("-").map(Number);
+
+      const entryDate = new Date(year, month - 1, day);
+
       const mappedData: CustomerData = {
         name: data.name || data.nombre,
         whatsapp: data.whatsapp || data.telefono,
@@ -68,7 +70,7 @@ export const customersService = {
         throw createValidationError('amount', 'El monto debe ser mayor a 0', mappedData.amount);
       }
 
-    
+
 
       const customer = await CustomerModel.create(mappedData);
       console.log('Cliente creado exitosamente:', { customerId: customer._id, name: customer.name });

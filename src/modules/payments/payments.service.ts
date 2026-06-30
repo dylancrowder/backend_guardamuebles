@@ -138,21 +138,18 @@ detailPayments: async (clientId: string) => {
   let endYear = now.getUTCFullYear();
   let endMonth = now.getUTCMonth();
 
-  // Si existen pagos adelantados, extender el historial
+  // extender historial si hay pagos adelantados
   if (payments.length > 0) {
     const lastPaid = payments[payments.length - 1].period;
     const [y, m] = lastPaid.split("-").map(Number);
 
-    if (
-      y > endYear ||
-      (y === endYear && m - 1 > endMonth)
-    ) {
+    if (y > endYear || (y === endYear && m - 1 > endMonth)) {
       endYear = y;
       endMonth = m - 1;
     }
   }
 
-  const history = [];
+  const history: any[] = [];
 
   let year = startYear;
   let month = startMonth;
@@ -180,22 +177,14 @@ detailPayments: async (clientId: string) => {
     }
   }
 
-  /**
-   * SOLO cuentan como deuda
-   * los períodos que YA vencieron.
-   *
-   * Ej:
-   * Período 2026-06
-   * vence el 26/07
-   */
+  // períodos vencidos
   const overduePeriods = history.filter((item) => {
     if (item.status === "PAID") return false;
 
     const [y, m] = item.period.split("-").map(Number);
 
-    // El período vence un mes después
     const dueDate = new Date(
-      Date.UTC(y, m, billingDay)
+      Date.UTC(y, m - 1, billingDay, 12)
     );
 
     return now >= dueDate;
@@ -226,20 +215,11 @@ detailPayments: async (clientId: string) => {
     nextDuePeriod = `${startYear}-${String(startMonth + 1).padStart(2, "0")}`;
   }
 
-  const [dueYear, dueMonth] = nextDuePeriod
-    .split("-")
-    .map(Number);
+  const [dueYear, dueMonth] = nextDuePeriod.split("-").map(Number);
 
-  /**
-   * El próximo vencimiento
-   * es un mes después del período.
-   */
+  // ✅ FIX FINAL: corrección de base 1 → base 0
   const nextDueDate = new Date(
-    Date.UTC(
-      dueYear,
-      dueMonth,
-      billingDay
-    )
+    Date.UTC(dueYear, dueMonth - 1, billingDay, 12)
   );
 
   const diffDays = Math.ceil(
@@ -249,12 +229,8 @@ detailPayments: async (clientId: string) => {
 
   return {
     client,
-
     account: {
-      status:
-        overduePeriods.length > 0
-          ? "OVERDUE"
-          : "CURRENT",
+      status: overduePeriods.length > 0 ? "OVERDUE" : "CURRENT",
 
       lastPaidPeriod: lastPaidPeriod
         ? {
@@ -265,27 +241,19 @@ detailPayments: async (clientId: string) => {
         : null,
 
       nextDuePeriod,
-
       nextDueDate,
 
-      daysRemaining:
-        diffDays > 0 ? diffDays : 0,
-
-      daysOverdue:
-        diffDays < 0 ? Math.abs(diffDays) : 0,
+      daysRemaining: diffDays > 0 ? diffDays : 0,
+      daysOverdue: diffDays < 0 ? Math.abs(diffDays) : 0,
 
       monthsOwed: overduePeriods.length,
+      totalDebt: overduePeriods.length * client.amount,
 
-      totalDebt:
-        overduePeriods.length * client.amount,
-
-      pendingPeriods: overduePeriods.map(
-        (x) => x.period
-      ),
+      pendingPeriods: overduePeriods.map((x) => x.period),
     },
 
     history,
   };
-}
+},
 
 };

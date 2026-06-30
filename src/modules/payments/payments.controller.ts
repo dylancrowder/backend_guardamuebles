@@ -57,33 +57,30 @@ export const paymentsController = {
 
 
 
-  detailPayments: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const clientId = Array.isArray(req.params.clientId)
-        ? req.params.clientId[0]
-        : req.params.clientId;
+ detailPayments: async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const clientId = Array.isArray(req.params.clientId)
+      ? req.params.clientId[0]
+      : req.params.clientId;
 
-      if (!clientId) {
-        throw createValidationError(
-          "clientId",
-          "ID del cliente requerido"
-        );
-      }
-
-      const result = await paymentsService.detailPayments(clientId);
-
-      return res.status(200).json(result);
-    } catch (error) {
-      handleError(error, req, res, 400);
+    if (!clientId) {
+      throw createValidationError(
+        "clientId",
+        "ID del cliente requerido"
+      );
     }
 
+    const result = await paymentsService.detailPayments(clientId);
+
+    return res.status(200).json(result);
+  } catch (error) {
+    handleError(error, req, res, 400);
   }
-
-
+},
 
 
 
