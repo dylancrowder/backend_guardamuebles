@@ -97,7 +97,6 @@ export const customersService = {
       if (data.name || data.nombre) mappedData.name = data.name || data.nombre;
       if (data.whatsapp || data.telefono) mappedData.whatsapp = data.whatsapp || data.telefono;
       if (data.entryDate) mappedData.entryDate = data.entryDate;
-      if (data.dueDate) mappedData.dueDate = data.dueDate;
       if (data.amount !== undefined || data.limiteCredito !== undefined) {
         mappedData.amount = data.amount || data.limiteCredito;
       }
@@ -105,14 +104,6 @@ export const customersService = {
 
       if (mappedData.amount && mappedData.amount <= 0) {
         throw createValidationError('amount', 'El monto debe ser mayor a 0', mappedData.amount);
-      }
-
-      if (mappedData.entryDate || mappedData.dueDate) {
-        const entry = mappedData.entryDate || existingClient.entryDate;
-        const due = mappedData.dueDate || existingClient.dueDate;
-        if (due <= entry) {
-          throw createValidationError('dueDate', 'La fecha de vencimiento debe ser posterior a la fecha de entrada');
-        }
       }
 
       const updatedCustomer = await CustomerModel.findByIdAndUpdate(
