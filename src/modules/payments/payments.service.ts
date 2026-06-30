@@ -97,7 +97,7 @@ export const paymentsService = {
         );
       }
 
-      // Crear pago
+      // Crear pagos
       const payment = await PaymentModel.create({
         clientId,
         amount: data.amount,
