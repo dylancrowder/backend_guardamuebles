@@ -15,13 +15,23 @@ app.set('strict routing', false);
 app.disable('x-powered-by');
 
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  origin: [
+    'https://frontguarda.netlify.app',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
   optionsSuccessStatus: 200
 }));
-app.use(helmet());
+
+app.options('*', cors());
+
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
 app.use(morgan(isDevelopment ? 'dev' : 'combined'));
 app.use(express.json());
 
@@ -34,7 +44,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.use(routes);
+app.use('/api', routes);
 
 app.use((req: Request, res: Response) => {
   handleError(
