@@ -18,7 +18,7 @@ router.get('/health', (_req, res) => {
   });
 });
 
-router.use('/api/clients', customersRoutes);
-router.use('/api/payments', paymentsRoutes);
+router.use('/api/clients/', customersRoutes);
+router.use('/api/payments/', paymentsRoutes);
 
 export default router;
