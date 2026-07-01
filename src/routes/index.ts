@@ -18,12 +18,24 @@ router.get('/health', (_req, res) => {
   });
 });
 
-// Mount routes without trailing slash requirement
+// Test endpoint
+router.get('/test', (_req, res) => {
+  return res.json({
+    success: true,
+    message: 'Test OK'
+  });
+});
+
+router.options('/api/clients', (_req, res) => {
+  res.status(200).end();
+});
+
+router.options('/api/payments', (_req, res) => {
+  res.status(200).end();
+});
+
+// Mount routes
 router.use('/api/clients', customersRoutes);
 router.use('/api/payments', paymentsRoutes);
-
-// Also mount with trailing slash for compatibility
-router.use('/api/clients/', customersRoutes);
-router.use('/api/payments/', paymentsRoutes);
 
 export default router;
