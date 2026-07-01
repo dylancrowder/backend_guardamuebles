@@ -10,8 +10,9 @@ const app = express();
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-// Disable strict routing to avoid trailing slash redirects
+// Disable redirects
 app.set('strict routing', false);
+app.disable('x-powered-by');
 
 app.use(cors({
   origin: '*',
