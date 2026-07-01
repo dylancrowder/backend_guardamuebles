@@ -28,6 +28,9 @@ app.use(express.json());
 app.use((req: Request, res: Response, next: NextFunction) => {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${req.method} ${req.path}`);
+  console.log('Origin:', req.headers.origin);
+  console.log('User-Agent:', req.headers['user-agent']);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
   next();
 });
 
@@ -47,6 +50,11 @@ app.use((req: Request, res: Response) => {
 });
 
 app.use((error: any, req: Request, res: Response, next: NextFunction) => {
+  const timestamp = new Date().toISOString();
+  console.error(`[${timestamp}] ERROR - ${req.method} ${req.path}`);
+  console.error('Origin:', req.headers.origin);
+  console.error('Error:', error);
+  console.error('User-Agent:', req.headers['user-agent']);
   handleError(error, req, res, 500);
 });
 
