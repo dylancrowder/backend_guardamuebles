@@ -23,7 +23,12 @@ export default async (req: any, res: any) => {
     }
 
     // Pass to Express
-    app(req, res);
+    return new Promise((resolve, reject) => {
+      app(req, res, (err: any) => {
+        if (err) reject(err);
+        else resolve(undefined);
+      });
+    });
   } catch (error) {
     console.error('Error:', error);
     if (!res.headersSent) {
