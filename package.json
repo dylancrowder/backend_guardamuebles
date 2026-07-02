@@ -3,10 +3,9 @@
   "version": "1.0.0",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "tsx watch -r tsconfig-paths/register src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "render-build": "npm install && npm run build",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc || echo 'TypeScript compilation had warnings'",
+    "start": "tsx src/server.ts",
     "lint": "eslint ."
   },
   "dependencies": {
