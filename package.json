@@ -6,6 +6,7 @@
     "dev": "tsx watch -r tsconfig-paths/register src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
+    "render-build": "npm install && npm run build",
     "lint": "eslint ."
   },
   "dependencies": {
