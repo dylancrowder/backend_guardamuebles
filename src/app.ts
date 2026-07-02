@@ -14,12 +14,19 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 app.set('strict routing', false);
 app.disable('x-powered-by');
 
+const allowedOrigins = [
+  'https://frontguarda.netlify.app',
+  'http://localhost:3000',
+  'http://localhost:3001'
+];
+
+// Add dynamic origin from environment if provided
+if (process.env.CORS_ORIGIN) {
+  allowedOrigins.push(process.env.CORS_ORIGIN);
+}
+
 app.use(cors({
-  origin: [
-    'https://frontguarda.netlify.app',
-    'http://localhost:3000',
-    'http://localhost:3001'
-  ],
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
@@ -32,6 +39,15 @@ app.options('*', cors());
 app.use(helmet());
 app.use(morgan(isDevelopment ? 'dev' : 'combined'));
 app.use(express.json());
+
+// Health check endpoint for Render
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const timestamp = new Date().toISOString();
