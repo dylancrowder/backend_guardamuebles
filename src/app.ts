@@ -15,36 +15,23 @@ app.set('strict routing', false);
 app.disable('x-powered-by');
 
 app.use(cors({
-  origin: [
-    'https://frontguarda.netlify.app',
-    'http://localhost:5173',
-    'http://localhost:3000'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
   optionsSuccessStatus: 200
 }));
-
-app.options('*', cors());
-
-app.use(helmet({
-  crossOriginResourcePolicy: false,
-  crossOriginEmbedderPolicy: false
-}));
+app.use(helmet());
 app.use(morgan(isDevelopment ? 'dev' : 'combined'));
 app.use(express.json());
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${req.method} ${req.path}`);
-  console.log('Origin:', req.headers.origin);
-  console.log('User-Agent:', req.headers['user-agent']);
-  console.log('Headers:', JSON.stringify(req.headers, null, 2));
   next();
 });
 
-app.use('/api', routes);
+app.use(routes);
 
 app.use((req: Request, res: Response) => {
   handleError(
@@ -60,11 +47,6 @@ app.use((req: Request, res: Response) => {
 });
 
 app.use((error: any, req: Request, res: Response, next: NextFunction) => {
-  const timestamp = new Date().toISOString();
-  console.error(`[${timestamp}] ERROR - ${req.method} ${req.path}`);
-  console.error('Origin:', req.headers.origin);
-  console.error('Error:', error);
-  console.error('User-Agent:', req.headers['user-agent']);
   handleError(error, req, res, 500);
 });
 
