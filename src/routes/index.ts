@@ -26,14 +26,6 @@ router.get('/test', (_req, res) => {
   });
 });
 
-router.options('/api/clients', (_req, res) => {
-  res.status(200).end();
-});
-
-router.options('/api/payments', (_req, res) => {
-  res.status(200).end();
-});
-
 // Mount routes
 router.use('/api/clients', customersRoutes);
 router.use('/api/payments', paymentsRoutes);

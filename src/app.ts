@@ -15,12 +15,20 @@ app.set('strict routing', false);
 app.disable('x-powered-by');
 
 app.use(cors({
-  origin: '*',
+  origin: [
+    'https://frontguarda.netlify.app',
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  maxAge: 86400
 }));
+
+// Handle preflight requests explicitly
+app.options('*', cors());
 app.use(helmet());
 app.use(morgan(isDevelopment ? 'dev' : 'combined'));
 app.use(express.json());
