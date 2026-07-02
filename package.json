@@ -15,15 +15,14 @@
     "helmet": "^7.1.0",
     "mongoose": "^8.6.2",
     "morgan": "^1.10.0",
-    "tsconfig-paths": "^4.2.0"
+    "tsx": "^4.19.1",
+    "typescript": "^5.5.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/morgan": "^1.9.9",
-    "@types/node": "^22.5.4",
-    "tsx": "^4.19.1",
-    "typescript": "^5.5.4"
+    "@types/node": "^22.5.4"
   },
   "engines": {
     "node": ">=18.0.0",
