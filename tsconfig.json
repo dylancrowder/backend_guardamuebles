@@ -8,8 +8,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "types": ["node"],
-    "lib": ["ES2020"]
+    "moduleResolution": "node"
   },
   "include": ["src"]
 }
