@@ -2,7 +2,10 @@ import mongoose from 'mongoose';
 
 const customerSchema = new mongoose.Schema(
   {
-    // Información básica
+    box: {
+      type: Number,
+      required: [true, 'El numero es requerido']
+    },
     name: {
       type: String,
       required: [true, 'El nombre es requerido'],

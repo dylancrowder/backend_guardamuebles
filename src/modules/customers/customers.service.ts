@@ -3,6 +3,7 @@ import { AppError, createNotFoundError, createBadRequestError, createValidationE
 import { PaymentModel } from '../payments/payments.model';
 
 interface CustomerData {
+  box?: number;
   name?: string;
   whatsapp?: string;
   entryDate?: Date;
@@ -48,11 +49,14 @@ export const customersService = {
 
   create: async (data: any) => {
     try {
-      const [year, month, day] = data.entryDate.split("-").map(Number);
+      const entryDate = new Date(data.entryDate);
 
-      const entryDate = new Date(year, month - 1, day);
+      if (isNaN(entryDate.getTime())) {
+        throw createValidationError('entryDate', 'Fecha de entrada inválida', data.entryDate);
+      }
 
       const mappedData: CustomerData = {
+        box: data.box,
         name: data.name || data.nombre,
         whatsapp: data.whatsapp || data.telefono,
         entryDate: entryDate,
@@ -60,7 +64,7 @@ export const customersService = {
         observations: data.observations || ''
       };
 
-      const requiredFields = ['name', 'whatsapp', 'entryDate', 'amount'];
+      const requiredFields = ['box', 'name', 'whatsapp', 'entryDate', 'amount'];
       const missingFields = requiredFields.filter(field => !mappedData[field as keyof CustomerData]);
 
       if (missingFields.length > 0) {
@@ -95,9 +99,16 @@ export const customersService = {
       }
 
       const mappedData: CustomerData = {};
+      if (data.box !== undefined) mappedData.box = data.box;
       if (data.name || data.nombre) mappedData.name = data.name || data.nombre;
       if (data.whatsapp || data.telefono) mappedData.whatsapp = data.whatsapp || data.telefono;
-      if (data.entryDate) mappedData.entryDate = data.entryDate;
+      if (data.entryDate) {
+        const entryDate = new Date(data.entryDate);
+        if (isNaN(entryDate.getTime())) {
+          throw createValidationError('entryDate', 'Fecha de entrada inválida', data.entryDate);
+        }
+        mappedData.entryDate = entryDate;
+      }
       if (data.amount !== undefined || data.limiteCredito !== undefined) {
         mappedData.amount = data.amount || data.limiteCredito;
       }
