@@ -25,6 +25,7 @@ export const customersController = {
       }
 
       const result = await customersService.getAll(filters);
+      console.log(result);
       return res.json(result);
     } catch (error: any) {
       handleError(error, req, res, 400);
@@ -84,8 +85,16 @@ export const customersController = {
     } catch (error: any) {
       handleError(error, req, res, 404);
     }
+  },
+
+  getAllInfo: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await customersService.getAllInfo();
+      return res.json(result);
+    } catch (error: any) {
+      handleError(error, req, res, 400);
+    }
   }
 
-
-
 };
+

@@ -4,6 +4,7 @@ import { customersController } from './customers.controller';
 const router = Router();
 
 router.get('/', customersController.getAll);
+router.get('/getAllInfo', customersController.getAllInfo);
 router.post('/', customersController.create);
 router.get('/getClient/:id', customersController.getById);
 router.put('/:clientId', customersController.update);

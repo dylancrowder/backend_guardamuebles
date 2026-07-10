@@ -1,5 +1,6 @@
 import { CustomerModel } from './customers.model';
 import { AppError, createNotFoundError, createBadRequestError, createValidationError } from '../../utils/response';
+import { PaymentModel } from '../payments/payments.model';
 
 interface CustomerData {
   name?: string;
@@ -150,4 +151,148 @@ export const customersService = {
       throw createBadRequestError('Error al eliminar cliente', { originalError: error.message });
     }
   }
+  ,
+
+
+  getAllInfo: async () => {
+    const clients = await CustomerModel.find();
+
+    if (!clients.length) {
+      throw createNotFoundError("No hay clientes registrados");
+    }
+
+    const now = new Date();
+
+    const result = await Promise.all(
+      clients.map(async (client) => {
+        const payments = await PaymentModel.find({
+          clientId: client._id,
+        }).sort({
+          period: 1,
+        });
+
+        const billingDay = client.entryDate.getUTCDate();
+
+        const startYear = client.entryDate.getUTCFullYear();
+        const startMonth = client.entryDate.getUTCMonth();
+
+        const paymentsMap = new Map(
+          payments.map((payment) => [
+            payment.period,
+            payment,
+          ])
+        );
+
+        let endYear = now.getUTCFullYear();
+        let endMonth = now.getUTCMonth();
+
+        if (payments.length > 0) {
+          const lastPaid = payments[payments.length - 1].period;
+          const [y, m] = lastPaid.split("-").map(Number);
+
+          if (
+            y > endYear ||
+            (y === endYear && m - 1 > endMonth)
+          ) {
+            endYear = y;
+            endMonth = m - 1;
+          }
+        }
+
+        const history: any[] = [];
+
+        let year = startYear;
+        let month = startMonth;
+
+        while (
+          year < endYear ||
+          (year === endYear && month <= endMonth)
+        ) {
+          const period = `${year}-${String(month + 1).padStart(2, "0")}`;
+
+          const payment = paymentsMap.get(period);
+
+          history.push({
+            period,
+            status: payment ? "PAID" : "PENDING",
+          });
+
+          month++;
+
+          if (month > 11) {
+            month = 0;
+            year++;
+          }
+        }
+
+        const overduePeriods = history.filter((item) => {
+          if (item.status === "PAID") return false;
+
+          const [y, m] = item.period.split("-").map(Number);
+
+          const dueDate = new Date(
+            Date.UTC(y, m - 1, billingDay, 12)
+          );
+
+          return now >= dueDate;
+        });
+
+        const lastPaid =
+          payments.length > 0
+            ? payments[payments.length - 1]
+            : null;
+
+        let nextDuePeriod: string;
+
+        if (overduePeriods.length > 0) {
+          nextDuePeriod = overduePeriods[0].period;
+        } else if (lastPaid) {
+          const [y, m] = lastPaid.period.split("-").map(Number);
+
+          let nextYear = y;
+          let nextMonth = m + 1;
+
+          if (nextMonth > 12) {
+            nextMonth = 1;
+            nextYear++;
+          }
+
+          nextDuePeriod = `${nextYear}-${String(nextMonth).padStart(2, "0")}`;
+        } else {
+          nextDuePeriod = `${startYear}-${String(
+            startMonth + 1
+          ).padStart(2, "0")}`;
+        }
+
+        const [dueYear, dueMonth] =
+          nextDuePeriod.split("-").map(Number);
+
+        const nextDueDate = new Date(
+          Date.UTC(dueYear, dueMonth - 1, billingDay, 12)
+        );
+
+        const diffDays = Math.ceil(
+          (nextDueDate.getTime() - now.getTime()) /
+          (1000 * 60 * 60 * 24)
+        );
+
+        return {
+          ...client.toObject(),
+
+          nextDueDate,
+
+          daysRemaining:
+            diffDays > 0 ? diffDays : 0,
+
+          daysOverdue:
+            diffDays < 0 ? Math.abs(diffDays) : 0,
+
+          monthsOwed:
+            overduePeriods.length,
+        };
+      })
+    );
+
+    return result;
+  },
 };

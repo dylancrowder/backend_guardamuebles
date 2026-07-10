@@ -14,6 +14,7 @@ export const connectDatabase = async () => {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
+      family: 4, // Use IPv4, avoid IPv6 issues
     };
 
     cachedConnection = await mongoose.connect(env.MONGODB_URI, opts);
