@@ -3,8 +3,9 @@ import mongoose from 'mongoose';
 const customerSchema = new mongoose.Schema(
   {
     box: {
-      type: Number,
-      required: [true, 'El numero es requerido']
+      type: [Number],
+      required: [true, 'El numero es requerido'],
+      default: []
     },
     name: {
       type: String,

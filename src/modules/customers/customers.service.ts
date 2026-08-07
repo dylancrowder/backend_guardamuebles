@@ -3,7 +3,7 @@ import { AppError, createNotFoundError, createBadRequestError, createValidationE
 import { PaymentModel } from '../payments/payments.model';
 
 interface CustomerData {
-  box?: number;
+  box?: number[];
   name?: string;
   whatsapp?: string;
   entryDate?: Date;
@@ -11,8 +11,37 @@ interface CustomerData {
   observations?: string;
 }
 
+export const normalizeCustomerBoxes = (value: unknown): number[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === 'number') return item;
+        if (typeof item === 'string') {
+          const trimmed = item.trim();
+          return trimmed ? Number(trimmed) : NaN;
+        }
+        return NaN;
+      })
+      .filter((item): item is number => Number.isFinite(item) && item > 0);
+  }
 
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value > 0 ? [value] : [];
+  }
 
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    return trimmed
+      .split(/[,;\s]+/)
+      .filter(Boolean)
+      .map((item) => Number(item))
+      .filter((item): item is number => Number.isFinite(item) && item > 0);
+  }
+
+  return [];
+};
 
 export const customersService = {
   getAll: async (query: Record<string, any>) => {
@@ -55,8 +84,10 @@ export const customersService = {
         throw createValidationError('entryDate', 'Fecha de entrada inválida', data.entryDate);
       }
 
+      const boxes = normalizeCustomerBoxes(data.box ?? data.boxes);
+
       const mappedData: CustomerData = {
-        box: data.box,
+        box: boxes,
         name: data.name || data.nombre,
         whatsapp: data.whatsapp || data.telefono,
         entryDate: entryDate,
@@ -65,7 +96,10 @@ export const customersService = {
       };
 
       const requiredFields = ['box', 'name', 'whatsapp', 'entryDate', 'amount'];
-      const missingFields = requiredFields.filter(field => !mappedData[field as keyof CustomerData]);
+      const missingFields = requiredFields.filter(field => {
+        if (field === 'box') return mappedData.box?.length === 0;
+        return !mappedData[field as keyof CustomerData];
+      });
 
       if (missingFields.length > 0) {
         throw createBadRequestError('Campos requeridos faltantes', { missingFields });
@@ -99,7 +133,13 @@ export const customersService = {
       }
 
       const mappedData: CustomerData = {};
-      if (data.box !== undefined) mappedData.box = data.box;
+      if (data.box !== undefined || data.boxes !== undefined) {
+        const boxes = normalizeCustomerBoxes(data.box ?? data.boxes);
+        if (boxes.length === 0) {
+          throw createValidationError('box', 'Debe proporcionar al menos un box válido', data.box ?? data.boxes);
+        }
+        mappedData.box = boxes;
+      }
       if (data.name || data.nombre) mappedData.name = data.name || data.nombre;
       if (data.whatsapp || data.telefono) mappedData.whatsapp = data.whatsapp || data.telefono;
       if (data.entryDate) {
