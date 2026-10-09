@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import customersRoutes from '../modules/customers/customers.routes';
+import finanzasRoutes from '../modules/finanzas/finanzas.routes';
 import paymentsRoutes from '../modules/payments/payments.routes';
 import ventasRoutes from '../modules/ventas/ventas.routes';
 
@@ -29,6 +30,7 @@ router.get('/test', (_req, res) => {
 
 // Mount routes
 router.use('/api/clients', customersRoutes);
+router.use('/api/finanzas', finanzasRoutes);
 router.use('/api/payments', paymentsRoutes);
 router.use('/api/ventas', ventasRoutes);
 
