@@ -47,7 +47,7 @@ export const customersService = {
   getAll: async (query: Record<string, any>) => {
     try {
 
-      let clients = await CustomerModel.find(query)
+      const clients = await CustomerModel.find({ ...query, deletedAt: null });
       console.log('Clientes encontrados:', clients);
 
       return clients
@@ -63,7 +63,7 @@ export const customersService = {
         throw createBadRequestError('ID de cliente inválido', { providedId: id });
       }
 
-      const client = await CustomerModel.findById(id);
+      const client = await CustomerModel.findOne({ _id: id, deletedAt: null });
       if (!client) {
         throw createNotFoundError('Cliente', id);
       }
@@ -127,7 +127,7 @@ export const customersService = {
         throw createBadRequestError('ID de cliente inválido', { providedId: id });
       }
 
-      const existingClient = await CustomerModel.findById(id);
+      const existingClient = await CustomerModel.findOne({ _id: id, deletedAt: null });
       if (!existingClient) {
         throw createNotFoundError('Cliente', id);
       }
@@ -158,8 +158,8 @@ export const customersService = {
         throw createValidationError('amount', 'El monto debe ser mayor a 0', mappedData.amount);
       }
 
-      const updatedCustomer = await CustomerModel.findByIdAndUpdate(
-        id,
+      const updatedCustomer = await CustomerModel.findOneAndUpdate(
+        { _id: id, deletedAt: null },
         mappedData,
         {
           new: true,
@@ -182,18 +182,21 @@ export const customersService = {
         throw createBadRequestError('ID de cliente inválido', { providedId: id });
       }
 
-      const client = await CustomerModel.findById(id);
+      const client = await CustomerModel.findOneAndUpdate(
+        { _id: id, deletedAt: null },
+        { $set: { deletedAt: new Date() } },
+        { new: true }
+      );
       if (!client) {
         throw createNotFoundError('Cliente', id);
       }
-
-      await CustomerModel.findByIdAndDelete(id);
 
       console.log('Cliente eliminado exitosamente:', { customerId: id });
       return {
         message: 'Cliente eliminado exitosamente',
         deletedClient: {
-          _id: client._id
+          _id: client._id,
+          deletedAt: client.deletedAt
         }
       };
     } catch (error: any) {
@@ -206,7 +209,7 @@ export const customersService = {
 
 
   getAllInfo: async () => {
-    const clients = await CustomerModel.find();
+    const clients = await CustomerModel.find({ deletedAt: null });
 
     if (!clients.length) {
       throw createNotFoundError("No hay clientes registrados");

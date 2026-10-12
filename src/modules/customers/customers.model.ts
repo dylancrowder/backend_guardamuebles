@@ -36,6 +36,10 @@ const customerSchema = new mongoose.Schema(
       type: String,
       default: '',
       maxlength: [500, 'Las observaciones no pueden exceder 500 caracteres']
+    },
+    deletedAt: {
+      type: Date,
+      default: null
     }
   },
   {
