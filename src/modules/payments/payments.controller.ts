@@ -53,6 +53,30 @@ export const paymentsController = {
     }
   },
 
+  updatePayment: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const paymentId = Array.isArray(req.params.paymentId)
+        ? req.params.paymentId[0]
+        : req.params.paymentId;
+      const payment = await paymentsService.updatePayment(paymentId, req.body);
+      return res.status(200).json(payment);
+    } catch (error: any) {
+      handleError(error, req, res, 400);
+    }
+  },
+
+  deletePayment: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const paymentId = Array.isArray(req.params.paymentId)
+        ? req.params.paymentId[0]
+        : req.params.paymentId;
+      const result = await paymentsService.deletePayment(paymentId);
+      return res.status(200).json(result);
+    } catch (error: any) {
+      handleError(error, req, res, 400);
+    }
+  },
+
   detailPayments: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const clientId = Array.isArray(req.params.clientId)

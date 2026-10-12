@@ -4,8 +4,9 @@ import { createNotFoundError, createBadRequestError, createValidationError } fro
 
 interface PaymentData {
   amount: number;
-  period: string;
-  paymentDate?: Date;
+  period?: string;
+  periods?: string[];
+  paymentDate?: Date | string;
   description?: string;
 }
 
@@ -76,41 +77,123 @@ export const paymentsService = {
         );
       }
 
-      // Validar período
-      if (!data.period || !/^\d{4}-\d{2}$/.test(data.period)) {
+      const periods = data.periods ?? (data.period ? [data.period] : []);
+
+      if (periods.length === 0) {
         throw createValidationError(
-          "period",
-          "El formato debe ser YYYY-MM",
-          data.period
+          "periods",
+          "Debe indicar al menos un período en formato YYYY-MM",
+          periods
         );
       }
 
-      // Verificar que el período no esté pago
-      const exists = await PaymentModel.findOne({
+      if (periods.some((period) => !/^\d{4}-(0[1-9]|1[0-2])$/.test(period))) {
+        throw createValidationError(
+          "periods",
+          "El formato debe ser YYYY-MM",
+          periods
+        );
+      }
+
+      if (new Set(periods).size !== periods.length) {
+        throw createBadRequestError("No se puede incluir un período más de una vez");
+      }
+
+      const existingPayments = await PaymentModel.find({
         clientId,
-        period: data.period,
+        period: { $in: periods },
       });
 
-      if (exists) {
+      if (existingPayments.length > 0) {
         throw createBadRequestError(
-          `El período ${data.period} ya fue abonado`
+          `El período ${existingPayments[0].period} ya fue abonado`
         );
       }
 
-      // Crear pagos
-      const payment = await PaymentModel.create({
+      const paymentDate = data.paymentDate ? new Date(data.paymentDate) : new Date();
+      if (Number.isNaN(paymentDate.getTime())) {
+        throw createValidationError("paymentDate", "Fecha de pago inválida", data.paymentDate);
+      }
+
+      const payments = await PaymentModel.insertMany(periods.map((period) => ({
         clientId,
         amount: data.amount,
-        period: data.period,
-        paymentDate: data.paymentDate ?? new Date(),
+        period,
+        paymentDate,
         description: data.description ?? "",
-      });
+      })));
 
-      return payment;
+      return payments.length === 1 ? payments[0] : payments;
     } catch (error) {
       console.error("Error en paymentsService.addPayment:", error);
       throw error;
     }
+  },
+
+  updatePayment: async (paymentId: string, data: Partial<PaymentData>) => {
+    if (!paymentId || !/^[0-9a-fA-F]{24}$/.test(paymentId)) {
+      throw createBadRequestError("ID de pago inválido", { providedId: paymentId });
+    }
+
+    const payment = await PaymentModel.findById(paymentId);
+    if (!payment) {
+      throw createNotFoundError("Pago", paymentId);
+    }
+
+    const update: Record<string, unknown> = {};
+
+    if (data.amount !== undefined) {
+      if (!Number.isFinite(data.amount) || data.amount <= 0) {
+        throw createValidationError("amount", "El monto debe ser mayor a 0", data.amount);
+      }
+      update.amount = data.amount;
+    }
+
+    if (data.period !== undefined) {
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(data.period)) {
+        throw createValidationError("period", "El formato debe ser YYYY-MM", data.period);
+      }
+
+      const existing = await PaymentModel.findOne({
+        clientId: payment.clientId,
+        period: data.period,
+        _id: { $ne: paymentId },
+      });
+      if (existing) {
+        throw createBadRequestError(`El período ${data.period} ya fue abonado`);
+      }
+      update.period = data.period;
+    }
+
+    if (data.paymentDate !== undefined) {
+      const paymentDate = new Date(data.paymentDate);
+      if (Number.isNaN(paymentDate.getTime())) {
+        throw createValidationError("paymentDate", "Fecha de pago inválida", data.paymentDate);
+      }
+      update.paymentDate = paymentDate;
+    }
+
+    if (data.description !== undefined) {
+      update.description = data.description;
+    }
+
+    return PaymentModel.findByIdAndUpdate(paymentId, update, {
+      new: true,
+      runValidators: true,
+    });
+  },
+
+  deletePayment: async (paymentId: string) => {
+    if (!paymentId || !/^[0-9a-fA-F]{24}$/.test(paymentId)) {
+      throw createBadRequestError("ID de pago inválido", { providedId: paymentId });
+    }
+
+    const payment = await PaymentModel.findByIdAndDelete(paymentId);
+    if (!payment) {
+      throw createNotFoundError("Pago", paymentId);
+    }
+
+    return { success: true, id: paymentId };
   },
 
 detailPayments: async (clientId: string) => {
