@@ -71,5 +71,21 @@ export const clientPhotosService = {
       }
       throw databaseError;
     }
+  },
+
+  delete: async (clientId: string, photoId: string) => {
+    const client = await CustomerModel.findOne({ _id: clientId, deletedAt: null }).select('_id');
+    if (!client) return null;
+
+    const photo = await ClientPhotoModel.findOne({ _id: photoId, clientId: client._id });
+    if (!photo) return false;
+
+    const { error } = await getSupabaseClient().storage
+      .from(CLIENT_PHOTOS_BUCKET)
+      .remove([photo.storagePath]);
+    if (error) throw error;
+
+    await ClientPhotoModel.deleteOne({ _id: photo._id });
+    return true;
   }
 };

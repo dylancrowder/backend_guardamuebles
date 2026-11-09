@@ -4,9 +4,14 @@ import mongoose from 'mongoose';
 import { clientPhotosService } from './client-photos.service';
 
 const invalidClientId = (clientId: string) => !mongoose.Types.ObjectId.isValid(clientId);
+const invalidPhotoId = (photoId: string) => !mongoose.Types.ObjectId.isValid(photoId);
 const getClientId = (req: Request): string => {
   const clientId = req.params.clientId;
   return Array.isArray(clientId) ? clientId[0] || '' : clientId;
+};
+const getPhotoId = (req: Request): string => {
+  const photoId = req.params.photoId;
+  return Array.isArray(photoId) ? photoId[0] || '' : photoId;
 };
 
 export const clientPhotosController = {
@@ -51,6 +56,27 @@ export const clientPhotosController = {
       return res.status(201).json(photo);
     } catch (error) {
       console.error('Error al subir foto del cliente:', error);
+      return res.status(500).json({ message: 'Error interno del servidor' });
+    }
+  },
+
+  delete: async (req: Request, res: Response) => {
+    const clientId = getClientId(req);
+    const photoId = getPhotoId(req);
+    if (invalidClientId(clientId)) {
+      return res.status(404).json({ message: 'Cliente no encontrado' });
+    }
+    if (invalidPhotoId(photoId)) {
+      return res.status(404).json({ message: 'Foto no encontrada' });
+    }
+
+    try {
+      const deleted = await clientPhotosService.delete(clientId, photoId);
+      if (deleted === null) return res.status(404).json({ message: 'Cliente no encontrado' });
+      if (!deleted) return res.status(404).json({ message: 'Foto no encontrada' });
+      return res.status(200).json({ message: 'Foto eliminada correctamente' });
+    } catch (error) {
+      console.error('Error al eliminar foto del cliente:', error);
       return res.status(500).json({ message: 'Error interno del servidor' });
     }
   }

@@ -7,6 +7,7 @@ const router = Router();
 
 router.get('/:clientId/photos', clientPhotosController.list);
 router.post('/:clientId/photos', parseClientPhoto, clientPhotosController.upload);
+router.delete('/:clientId/photos/:photoId', clientPhotosController.delete);
 router.get('/', customersController.getAll);
 router.get('/getAllInfo', customersController.getAllInfo);
 router.post('/', customersController.create);
