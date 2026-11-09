@@ -34,8 +34,6 @@ app.use(cors({
   maxAge: 86400
 }));
 
-// Handle preflight requests explicitly
-app.options('*', cors());
 app.use(helmet());
 app.use(morgan(isDevelopment ? 'dev' : 'combined'));
 app.use(express.json());

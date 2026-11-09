@@ -16,6 +16,8 @@ Antes de hacer deploy, asegúrate de tener estas variables configuradas en Rende
 - **PORT**: `3000`
 - **MONGODB_URI**: Tu conexión string de MongoDB Atlas (ej: `mongodb+srv://username:password@cluster.mongodb.net/guardamuebles?retryWrites=true&w=majority`)
 - **CORS_ORIGIN**: La URL de tu frontend (ej: `https://frontguarda.netlify.app`)
+- **SUPABASE_URL**: La URL del proyecto Supabase
+- **SUPABASE_SECRET_KEY**: Una clave secreta de Supabase; mantenla privada en el backend y nunca la añadas al frontend.
 
 ### 2. Crear el Servicio en Render
 
@@ -34,6 +36,17 @@ Antes de hacer deploy, asegúrate de tener estas variables configuradas en Rende
 En la sección "Environment" del servicio en Render:
 1. Añade todas las variables listadas en el paso 1
 2. Asegúrate de que `MONGODB_URI` sea correcta y accesible desde Render
+3. Configura `SUPABASE_SECRET_KEY` como variable privada del servicio; no la añadas al frontend.
+
+## Fotos de clientes
+
+- Crea en Supabase Storage un bucket público llamado `client-photos`.
+- El backend usa `SUPABASE_URL` y `SUPABASE_SECRET_KEY` para subir imágenes; no necesita la publishable key.
+- `GET /api/clients/:clientId/photos` devuelve los registros de fotos del cliente, o `[]` si no tiene.
+- `POST /api/clients/:clientId/photos` recibe `multipart/form-data` con una sola imagen en el campo `photo`; el máximo es 10 MB.
+- Las respuestas de foto incluyen `id` y `url`. El backend verifica el contenido de la imagen antes de subirla.
+- Estas rutas no requieren autenticación. Limita el origen con `CORS_ORIGIN`; CORS no sustituye la autenticación ni el control de permisos.
+- En el frontend, no fijes manualmente `Content-Type` al enviar `FormData`; deja que el navegador agregue el boundary.
 
 ### 4. Verificar la Conexión MongoDB
 
