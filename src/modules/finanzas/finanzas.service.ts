@@ -1,7 +1,7 @@
 import { FinanceMovementModel } from './finanzas.model';
 
 export const INCOME_CATEGORIES = ['guardamuebles', 'viaje', 'varios'] as const;
-export const EXPENSE_CATEGORIES = ['empleados', 'combustible', 'gastos varios', 'materiales', 'publicidad'] as const;
+export const EXPENSE_CATEGORIES = ['empleados', 'combustible', 'gastos varios', 'gastos mensuales', 'materiales', 'publicidad'] as const;
 
 export type FinanceType = 'ingreso' | 'egreso';
 export type FinanceCategory = typeof INCOME_CATEGORIES[number] | typeof EXPENSE_CATEGORIES[number];
@@ -147,6 +147,17 @@ export const finanzasService = {
     );
 
     return updated;
+  },
+
+  deleteAll: async () => {
+    const session = await FinanceMovementModel.db.startSession();
+    try {
+      await session.withTransaction(async () => {
+        await FinanceMovementModel.deleteMany({}).session(session);
+      });
+    } finally {
+      await session.endSession();
+    }
   },
 
   delete: async (id: string) => {

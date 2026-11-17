@@ -18,6 +18,19 @@ test('valida un movimiento de ingreso correcto', () => {
   assert.equal(result.description, 'Cobro de alquiler');
 });
 
+test('acepta gastos mensuales para egresos y los rechaza para ingresos', () => {
+  const movement = {
+    type: 'egreso',
+    category: 'gastos mensuales',
+    amount: 1500,
+    date: '2026-10-05',
+    description: 'Alquiler'
+  };
+
+  assert.equal(validateFinanceMovement(movement).category, 'gastos mensuales');
+  assert.throws(() => validateFinanceMovement({ ...movement, type: 'ingreso' }), /categoría/i);
+});
+
 test('rechaza categoría incompatible con el tipo', () => {
   assert.throws(() => {
     validateFinanceMovement({

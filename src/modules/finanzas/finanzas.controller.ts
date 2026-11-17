@@ -37,6 +37,15 @@ export const finanzasController = {
     }
   },
 
+  deleteAll: async (_req: Request, res: Response) => {
+    try {
+      await finanzasService.deleteAll();
+      return res.status(204).send();
+    } catch (error) {
+      return sendError(res, error, 500);
+    }
+  },
+
   delete: async (req: Request, res: Response) => {
     try {
       const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
